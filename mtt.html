@@ -20,9 +20,9 @@
 
   body {
     display: flex;
-    align-items: center;
     min-height: 100vh;
     padding: 0;
+    font-size: 200%;
   }
 
   .screen {
@@ -100,9 +100,16 @@
   }
 
   /* ===== TEST ===== */
+  .test-content {
+    height: 50dvh;
+    height: 50vh;
+    display: flex;
+    flex-direction: column;
+  }
+
   .test-question-area {
-    height: calc(100dvh - 25dvh);
-    height: calc(100vh - 25vh);
+    height: calc(50dvh - 20dvh);
+    height: calc(50vh - 20vh);
     display: flex;
     align-items: flex-start;
     justify-content: center;
@@ -113,7 +120,9 @@
   .test-question {
     text-align: center;
     border-radius: 16px;
-    transition: background 0.25s, color 0.25s;
+    padding-left: 20px;
+    padding-right: 20px;
+    will-change: background;
   }
 
   .test-question.correct {
@@ -160,20 +169,26 @@
   }
 
   .test-question .correct-answer {
-    display: none;
+    visibility: hidden;
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
     margin-top: 0.2em;
     font-weight: 400;
-    opacity: 0.9;
+    transition: opacity 0.2s;
   }
 
   .test-question.incorrect .correct-answer {
-    display: block;
+    visibility: visible;
+    opacity: 0.9;
+    height: auto;
+    overflow: visible;
   }
 
   /* ===== GRID 8×8 ===== */
   .test-grid-area {
-    height: 25dvh;
-    height: 25vh;
+    height: 20dvh;
+    height: 20vh;
     display: flex;
     align-items: flex-start;
     justify-content: flex-start;
@@ -186,8 +201,8 @@
     gap: 2px;
     height: 100%;
     width: auto;
-    max-width: 25dvh;
-    max-width: 25vh;
+    max-width: 20dvh;
+    max-width: 20vh;
     aspect-ratio: 1;
     border: 2px solid #718096;
     border-radius: 8px;
@@ -198,7 +213,6 @@
   .cell {
     aspect-ratio: 1;
     border-radius: 6px;
-    transition: background 0.2s;
   }
 
   .cell.inactive {
@@ -238,6 +252,13 @@
     background: #718096;
   }
 
+  .progress-counter {
+    text-align: center;
+    font-weight: 600;
+    color: #4a5568;
+    margin-top: 0.5rem;
+  }
+
   /* ===== DONE ===== */
   #screen-done h1 {
     font-size: 2.2rem;
@@ -271,22 +292,25 @@
 <div id="screen-test" class="screen">
   <div class="test-actions">
     <button class="btn btn-secondary" id="btn-home-from-test">На главную</button>
+    <div id="progress-counter" class="progress-counter">0/0</div>
   </div>
 
-  <div class="test-grid-area">
-    <div class="grid" id="grid"></div>
-  </div>
+  <div class="test-content">
+    <div class="test-grid-area">
+      <div class="grid" id="grid"></div>
+    </div>
 
-  <div class="test-question-area">
-    <div class="test-question" id="question-block">
-      <div class="pair" id="pair-display">
-        <span id="factor-x">?</span>
-        <span> × </span>
-        <span id="factor-y">?</span>
-        <span> = </span>
-        <input type="text" id="answer-input" inputmode="numeric" autocomplete="off">
+    <div class="test-question-area">
+      <div class="test-question" id="question-block">
+        <div class="pair" id="pair-display">
+          <span id="factor-x">?</span>
+          <span> × </span>
+          <span id="factor-y">?</span>
+          <span> = </span>
+          <input type="text" id="answer-input" inputmode="numeric" autocomplete="off">
+        </div>
+        <div class="correct-answer" id="correct-answer-text"></div>
       </div>
-      <div class="correct-answer" id="correct-answer-text"></div>
     </div>
   </div>
 </div>
@@ -361,6 +385,7 @@
   let currentX = null, currentY = null;
   let gridCells = [];  // [[cell, ...], ...] — 2D 8×8 (индексы 0..7 → числа 2..9)
   let waitingForCorrect = false;  // true → текущий вопрос повторяется пока не правильный ответ
+  let questionFontSize = 50;  // px, вычисляется один раз при старте теста
 
   // ---- сохранение/загрузка состояния ----
   function saveValuesToStorage() {
@@ -501,21 +526,37 @@
     showQuestion(currentX, currentY);
   }
 
-  // ---- подгон размера под заданную долю экрана ----
-  function fitWidth(el, fraction) {
-    el.style.fontSize = '200px';
-    const targetWidth = window.innerWidth * fraction;
+  // ---- счётчик прогресса ----
+  function updateProgressCounter() {
+    let solved = 0;
+    let total = 0;
+    for (const x of selectedNumbers) {
+      for (const y of selectedNumbers) {
+        total++;
+        if (values[x][y] === 3) solved++;
+      }
+    }
+    const el = document.getElementById('progress-counter');
+    el.textContent = solved + '/' + total;
+    el.style.fontSize = questionFontSize + 'px';
+  }
+
+  // ---- вычисление размера шрифта вопроса (один раз при старте теста) ----
+  function calcQuestionFontSize() {
+    const targetWidth = window.innerWidth * 0.8;
+    pairDisplay.style.fontSize = '200px';
     let lo = 10, hi = 300, mid;
     for (let i = 0; i < 20; i++) {
       mid = (lo + hi) / 2;
-      el.style.fontSize = mid + 'px';
-      if (el.scrollWidth > targetWidth) {
+      pairDisplay.style.fontSize = mid + 'px';
+      if (pairDisplay.scrollWidth > targetWidth) {
         hi = mid;
       } else {
         lo = mid;
       }
     }
-    el.style.fontSize = (lo * 0.95) + 'px';
+    questionFontSize = lo * 0.95;
+    pairDisplay.style.fontSize = questionFontSize + 'px';
   }
 
   // ---- отображение вопроса ----
@@ -527,13 +568,8 @@
     answerInput.focus();
     questionBlock.classList.remove('correct', 'incorrect');
     correctAnswerSpan.textContent = '';
-    // заполняем input тремя символами для точного измерения
-    answerInput.value = '888';
-    fitWidth(pairDisplay, 0.5);
-    // строка "Правильный ответ: N" — 50% от высоты шрифта вопроса
-    const questionFontSize = parseFloat(pairDisplay.style.fontSize);
+    pairDisplay.style.fontSize = questionFontSize + 'px';
     correctAnswerSpan.style.fontSize = (questionFontSize * 0.5) + 'px';
-    answerInput.value = '';
   }
 
   // ---- проверка ответа ----
@@ -561,6 +597,7 @@
       }
       saveValuesToStorage();
       updateGrid();
+      updateProgressCounter();
 
       setTimeout(() => {
         nextQuestion();
@@ -628,6 +665,8 @@
     saveValuesToStorage();
 
     showScreen(screenTest);
+    calcQuestionFontSize();
+    updateProgressCounter();
     nextQuestion();
   }
 
@@ -658,6 +697,16 @@
 
     questionBlock.addEventListener('click', function () {
       if (!answerInput.disabled) answerInput.focus();
+    });
+
+    let resizeTimer;
+    window.addEventListener('resize', function () {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function () {
+        if (screenTest.classList.contains('active')) {
+          calcQuestionFontSize();
+        }
+      }, 200);
     });
   }
 

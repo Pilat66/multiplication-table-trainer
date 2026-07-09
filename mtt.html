@@ -539,7 +539,7 @@
     const correct = currentX * currentY;
     const isCorrect = parseInt(userAnswer, 10) === correct;
 
-    if
+    if (isCorrect) {
       // правильный ответ
       consecutiveCorrect = Math.min(consecutiveCorrect + 1, 2);
       questionBlock.classList.add('correct');

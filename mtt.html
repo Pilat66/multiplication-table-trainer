@@ -99,9 +99,10 @@
 
   /* ===== TEST ===== */
   .test-question-area {
-    height: 50vh;
+    height: calc(100dvh - 25dvh);
+    height: calc(100vh - 25vh);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     text-align: center;
     padding: 1rem;
@@ -169,21 +170,22 @@
 
   /* ===== GRID 8×8 ===== */
   .test-grid-area {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 5;
+    height: 25dvh;
+    height: 25vh;
     display: flex;
     align-items: flex-start;
     justify-content: flex-start;
-    padding: 0.5rem;
+    padding: 0.5rem 0.5rem 0 0.5rem;
   }
 
   .grid {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
-    gap: 3px;
-    width: 25vmin;
+    gap: 2px;
+    height: 100%;
+    width: auto;
+    max-width: 25dvh;
+    max-width: 25vh;
     aspect-ratio: 1;
     border: 2px solid #718096;
     border-radius: 8px;
@@ -269,6 +271,10 @@
     <button class="btn btn-secondary" id="btn-home-from-test">На главную</button>
   </div>
 
+  <div class="test-grid-area">
+    <div class="grid" id="grid"></div>
+  </div>
+
   <div class="test-question-area">
     <div class="test-question" id="question-block">
       <div class="pair" id="pair-display">
@@ -280,10 +286,6 @@
       </div>
       <div class="correct-answer" id="correct-answer-text"></div>
     </div>
-  </div>
-
-  <div class="test-grid-area">
-    <div class="grid" id="grid"></div>
   </div>
 </div>
 

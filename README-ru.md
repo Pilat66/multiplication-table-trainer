@@ -4,7 +4,7 @@
 
 ## Как пользоваться
 
-1. Откройте `mtt.html` в любом современном браузере - [mtt.html](https://htmlpreview.github.io/?https://github.com/Pilat66/multiplication-table-trainer/blob/main/mtt.html)
+1. Откройте `mtt.html` в любом современном браузере - [mtt.html](https://pilat66.github.io/multiplication-table-trainer/mtt.html)
 2. На экране **Home** отметьте галочками числа, которые хотите потренировать (по умолчанию выбраны все от 2 до 9).
 3. Нажмите **«Начать тест»**.
 4. На экране **Test** вы увидите пример вида `7 × 8 = ?`. Введите ответ в поле и нажмите **Enter**.

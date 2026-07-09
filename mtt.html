@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Проверка таблицы умножения</title>
+<style>
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #f0f4f8;
+    color: #1a202c;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .screen {
+    display: none;
+    width: 100%;
+  }
+
+  .screen.active {
+    display: block;
+  }
+
+  /* ===== HOME ===== */
+  #screen-home h1 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  .checkbox-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+  }
+
+  .checkbox-grid label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    transition: background 0.15s;
+  }
+
+  .checkbox-grid label:hover {
+    background: #e2e8f0;
+  }
+
+  .checkbox-grid input[type="checkbox"] {
+    width: 1.4rem;
+    height: 1.4rem;
+    cursor: pointer;
+  }
+
+  .btn {
+    display: block;
+    margin: 0 auto;
+    padding: 0.9rem 2.5rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    background: #3182ce;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+
+  .btn:hover {
+    background: #2b6cb0;
+  }
+
+  .btn:active {
+    transform: scale(0.97);
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* ===== TEST ===== */
+  .test-question-area {
+    height: 50vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .test-question {
+    text-align: center;
+    border-radius: 16px;
+    transition: background 0.25s, color 0.25s;
+  }
+
+  .test-question.correct {
+    background: #38a169;
+    color: #fff;
+  }
+
+  .test-question.incorrect {
+    background: #e53e3e;
+    color: #fff;
+  }
+
+  .test-question .pair {
+    display: inline-block;
+    white-space: nowrap;
+    font-weight: 700;
+    line-height: 1.2;
+    word-break: break-word;
+  }
+
+  .test-question .pair input {
+    font: inherit;
+    font-weight: 700;
+    width: 3ch;
+    max-width: 80%;
+    border: none;
+    border-bottom: 4px solid rgba(0,0,0,0.2);
+    background: transparent;
+    color: inherit;
+    text-align: center;
+    outline: none;
+    padding: 0 0.15em;
+    transition: border-color 0.15s;
+  }
+
+  .test-question .pair input:focus {
+    border-bottom-color: #3182ce;
+  }
+
+  .test-question.correct .pair input,
+  .test-question.incorrect .pair input {
+    border-bottom-color: transparent;
+    pointer-events: none;
+  }
+
+  .test-question .correct-answer {
+    display: none;
+    margin-top: 0.2em;
+    font-weight: 400;
+    opacity: 0.9;
+  }
+
+  .test-question.incorrect .correct-answer {
+    display: block;
+  }
+
+  /* ===== GRID 8×8 ===== */
+  .test-grid-area {
+    height: 50vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 3px;
+    width: 100%;
+    max-width: 50vh;
+    aspect-ratio: 1;
+    border: 2px solid #718096;
+    border-radius: 8px;
+    padding: 3px;
+    background: #718096;
+  }
+
+  .cell {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    transition: background 0.2s;
+  }
+
+  .cell.inactive {
+    background: #cbd5e0;
+  }
+
+  .cell.active {
+    background: #edf2f7;
+  }
+
+  .cell.correct {
+    background: #38a169;
+  }
+
+  .cell.incorrect {
+    background: #e53e3e;
+  }
+
+  .test-actions {
+    position: fixed;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 10;
+  }
+
+  .test-actions .btn {
+    margin: 0;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .btn-secondary {
+    background: #a0aec0;
+  }
+
+  .btn-secondary:hover {
+    background: #718096;
+  }
+
+  /* ===== DONE ===== */
+  #screen-done h1 {
+    font-size: 2.2rem;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  #screen-done p {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #4a5568;
+    margin-bottom: 2rem;
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== HOME ========== -->
+<div id="screen-home" class="screen active">
+  <h1>🧮 Таблица умножения</h1>
+  <p style="text-align:center;margin-bottom:1.2rem;color:#4a5568;">
+    Выберите числа для проверки:
+  </p>
+  <div class="checkbox-grid" id="checkbox-grid">
+    <!-- генерируется JS -->
+  </div>
+  <button class="btn" id="btn-start">Начать тест</button>
+</div>
+
+<!-- ========== TEST ========== -->
+<div id="screen-test" class="screen">
+  <div class="test-actions">
+    <button class="btn btn-secondary" id="btn-home-from-test">На главную</button>
+  </div>
+
+  <div class="test-question-area">
+    <div class="test-question" id="question-block">
+      <div class="pair" id="pair-display">
+        <span id="factor-x">?</span>
+        <span> × </span>
+        <span id="factor-y">?</span>
+        <span> = </span>
+        <input type="text" id="answer-input" inputmode="numeric" autocomplete="off">
+      </div>
+      <div class="correct-answer" id="correct-answer-text"></div>
+    </div>
+  </div>
+
+  <div class="test-grid-area">
+    <div class="grid" id="grid"></div>
+  </div>
+</div>
+
+<!-- ========== DONE ========== -->
+<div id="screen-done" class="screen">
+  <h1>✅ Таблица умножения проверена</h1>
+  <p>Все возможные комбинации успешно решены!</p>
+  <button class="btn" id="btn-home-from-done">На главную</button>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---- константы ----
+  const ALL_NUMBERS = [2,3,4,5,6,7,8,9];
+  const STORAGE_KEY_VALUES = 'tu_values2';
+  const STORAGE_KEY_CONSEC = 'tu_consecCorrect';
+  const STORAGE_KEY_SELECTED = 'tu_selected';
+
+  // ---- утилиты хранения (localStorage с fallback куки) ----
+  function storageGet(name) {
+    try {
+      const v = localStorage.getItem(name);
+      if (v !== null) return v;
+    } catch (_) {}
+    try {
+      const match = document.cookie.match('(?:^|;)\\s*' + name + '=([^;]*)');
+      if (match) return decodeURIComponent(match[1]);
+    } catch (_) {}
+    return null;
+  }
+
+  function storageSet(name, value) {
+    try { localStorage.setItem(name, value); } catch (_) {}
+    try {
+      const d = new Date();
+      d.setDate(d.getDate() + 365);
+      document.cookie = name + '=' + encodeURIComponent(value) +
+        '; expires=' + d.toUTCString() + '; path=/';
+    } catch (_) {}
+  }
+
+  // ---- состояние ----
+  // selectedNumbers — Set выбранных чисел на Home
+  // values[10][10] — состояние каждой ячейки:
+  //   0/undefined = не выбрано, 1 = не задавался, 2 = была ошибка, 3 = правильный ответ
+  // consecutiveCorrect — количество правильных ответов подряд
+  let selectedNumbers = new Set();
+  let values = Array.from({ length: 10 }, () => Array(10).fill(0));
+  let consecutiveCorrect = 0;
+
+  // ---- DOM ----
+  const $ = id => document.getElementById(id);
+
+  const screenHome     = $('screen-home');
+  const screenTest     = $('screen-test');
+  const screenDone     = $('screen-done');
+  const checkboxGrid   = $('checkbox-grid');
+  const btnStart       = $('btn-start');
+  const pairDisplay    = $('pair-display');
+  const factorX        = $('factor-x');
+  const factorY        = $('factor-y');
+  const answerInput    = $('answer-input');
+  const questionBlock  = $('question-block');
+  const correctAnswerSpan = $('correct-answer-text');
+  const gridEl         = $('grid');
+  const btnHomeFromTest  = $('btn-home-from-test');
+  const btnHomeFromDone  = $('btn-home-from-done');
+
+  let currentX = null, currentY = null;
+  let gridCells = [];  // [[cell, ...], ...] — 2D 8×8 (индексы 0..7 → числа 2..9)
+  let waitingForCorrect = false;  // true → текущий вопрос повторяется пока не правильный ответ
+
+  // ---- сохранение/загрузка состояния ----
+  function saveValuesToStorage() {
+    const data = JSON.stringify({ values, consecutiveCorrect });
+    storageSet(STORAGE_KEY_VALUES, data);
+  }
+
+  function loadValuesFromStorage() {
+    const raw = storageGet(STORAGE_KEY_VALUES);
+    if (raw) {
+      try {
+        const data = JSON.parse(raw);
+        if (data.values && Array.isArray(data.values)) {
+          values = data.values;
+          // привести к размеру 10×10
+          for (let i = 0; i < 10; i++) {
+            if (!values[i]) values[i] = Array(10).fill(0);
+            for (let j = 0; j < 10; j++) {
+              if (values[i][j] === undefined) values[i][j] = 0;
+            }
+          }
+        }
+        consecutiveCorrect = data.consecutiveCorrect || 0;
+      } catch (_) { initValues(); }
+    } else {
+      initValues();
+    }
+  }
+
+  function saveSelectedToStorage() {
+    storageSet(STORAGE_KEY_SELECTED, [...selectedNumbers].join(','));
+  }
+
+  function loadSelectedFromStorage() {
+    const sel = storageGet(STORAGE_KEY_SELECTED);
+    selectedNumbers.clear();
+    if (sel) {
+      sel.split(',').forEach(s => {
+        const n = parseInt(s, 10);
+        if (ALL_NUMBERS.includes(n)) selectedNumbers.add(n);
+      });
+    }
+    if (selectedNumbers.size === 0) {
+      ALL_NUMBERS.forEach(n => selectedNumbers.add(n));
+    }
+  }
+
+  // ---- инициализация values (все выбранные → 1, остальные → 0) ----
+  function initValues() {
+    values = Array.from({ length: 10 }, () => Array(10).fill(0));
+    consecutiveCorrect = 0;
+    for (const x of selectedNumbers) {
+      for (const y of selectedNumbers) {
+        values[x][y] = 1;
+      }
+    }
+  }
+
+  // ---- экраны ----
+  function showScreen(screen) {
+    [screenHome, screenTest, screenDone].forEach(s => s.classList.remove('active'));
+    screen.classList.add('active');
+    if (screen === screenHome) {
+      renderCheckboxes();
+      loadSelectedFromStorage();
+      syncCheckboxesFromSelected();
+    }
+    if (screen === screenTest) {
+      renderGrid();
+      updateGrid();
+    }
+  }
+
+  // ---- чекбоксы ----
+  function renderCheckboxes() {
+    checkboxGrid.innerHTML = '';
+    ALL_NUMBERS.forEach(n => {
+      const label = document.createElement('label');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.value = n;
+      cb.addEventListener('change', onCheckboxChange);
+      label.appendChild(cb);
+      label.appendChild(document.createTextNode(n));
+      checkboxGrid.appendChild(label);
+    });
+  }
+
+  function syncCheckboxesFromSelected() {
+    const cbs = checkboxGrid.querySelectorAll('input[type="checkbox"]');
+    cbs.forEach(cb => {
+      cb.checked = selectedNumbers.has(Number(cb.value));
+    });
+  }
+
+  function onCheckboxChange() {
+    const cbs = checkboxGrid.querySelectorAll('input[type="checkbox"]');
+    selectedNumbers.clear();
+    cbs.forEach(cb => {
+      if (cb.checked) selectedNumbers.add(Number(cb.value));
+    });
+    btnStart.disabled = selectedNumbers.size < 1;
+    saveSelectedToStorage();
+  }
+
+  // ---- получение следующего вопроса ----
+  function nextQuestion() {
+    // собираем индексы со значениями 1 и 2
+    const ones = [], twos = [];
+    for (const x of selectedNumbers) {
+      for (const y of selectedNumbers) {
+        if (values[x][y] === 1) ones.push({ x, y });
+        else if (values[x][y] === 2) twos.push({ x, y });
+      }
+    }
+
+    // если нет ни 1 ни 2 — все 3, Done
+    if (ones.length === 0 && twos.length === 0) {
+      showScreenDone();
+      return;
+    }
+
+    // выбор по алгоритму
+    let pool;
+    if (consecutiveCorrect === 2) {
+      // сначала 2, потом 1
+      pool = twos.length > 0 ? twos : ones;
+    } else {
+      // сначала 1, потом 2
+      pool = ones.length > 0 ? ones : twos;
+    }
+
+    const idx = Math.floor(Math.random() * pool.length);
+    const pair = pool[idx];
+    currentX = pair.x;
+    currentY = pair.y;
+    waitingForCorrect = false;
+    showQuestion(currentX, currentY);
+  }
+
+  // ---- подгон размера под заданную долю экрана ----
+  function fitWidth(el, fraction) {
+    el.style.fontSize = '200px';
+    const targetWidth = window.innerWidth * fraction;
+    let lo = 10, hi = 300, mid;
+    for (let i = 0; i < 20; i++) {
+      mid = (lo + hi) / 2;
+      el.style.fontSize = mid + 'px';
+      if (el.scrollWidth > targetWidth) {
+        hi = mid;
+      } else {
+        lo = mid;
+      }
+    }
+    el.style.fontSize = (lo * 0.95) + 'px';
+  }
+
+  // ---- отображение вопроса ----
+  function showQuestion(x, y) {
+    factorX.textContent = x;
+    factorY.textContent = y;
+    answerInput.value = '';
+    answerInput.disabled = false;
+    answerInput.focus();
+    questionBlock.classList.remove('correct', 'incorrect');
+    correctAnswerSpan.textContent = '';
+    // заполняем input тремя символами для точного измерения
+    answerInput.value = '888';
+    fitWidth(pairDisplay, 0.5);
+    // строка "Правильный ответ: N" — 50% от высоты шрифта вопроса
+    const questionFontSize = parseFloat(pairDisplay.style.fontSize);
+    correctAnswerSpan.style.fontSize = (questionFontSize * 0.5) + 'px';
+    answerInput.value = '';
+  }
+
+  // ---- проверка ответа ----
+  function checkAnswer() {
+    if (!answerInput.value) return;
+    const userAnswer = answerInput.value.trim();
+    if (userAnswer === '') return;
+
+    const correct = currentX * currentY;
+    const isCorrect = parseInt(userAnswer, 10) === correct;
+
+    if
+      // правильный ответ
+      consecutiveCorrect = Math.min(consecutiveCorrect + 1, 2);
+      questionBlock.classList.add('correct');
+      answerInput.disabled = true;
+
+      if (waitingForCorrect) {
+        // был переспрос — ставим 2 (ждущая перепроверки)
+        values[currentX][currentY] = 2;
+        consecutiveCorrect = 0;
+      } else {
+        // 1 → 3 (с первого раза), 2 → 3 (перепроверена успешно)
+        values[currentX][currentY] = 3;
+      }
+      saveValuesToStorage();
+      updateGrid();
+
+      setTimeout(() => {
+        nextQuestion();
+      }, 500);
+
+    } else {
+      // неправильный ответ
+      consecutiveCorrect = 0;
+      waitingForCorrect = true;
+      questionBlock.classList.add('incorrect');
+      correctAnswerSpan.textContent = 'Правильный ответ: ' + correct;
+      // поле не блокируем — остаётся активным для повторного ввода
+      answerInput.value = '';
+      answerInput.focus();
+    }
+  }
+
+  // ---- отрисовка сетки 8×8 ----
+  function renderGrid() {
+    gridEl.innerHTML = '';
+    gridCells = [];
+    for (let ri = 0; ri < 8; ri++) {
+      const row = [];
+      for (let ci = 0; ci < 8; ci++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell inactive';
+        gridEl.appendChild(cell);
+        row.push(cell);
+      }
+      gridCells.push(row);
+    }
+  }
+
+  function updateGrid() {
+    for (let ri = 0; ri < 8; ri++) {
+      for (let ci = 0; ci < 8; ci++) {
+        const x = ri + 2;
+        const y = ci + 2;
+        const cell = gridCells[ri][ci];
+        const v = values[x][y];
+
+        if (v === 0 || v === undefined) {
+          cell.className = 'cell inactive';
+        } else if (v === 3) {
+          cell.className = 'cell correct';
+        } else if (v === 2) {
+          cell.className = 'cell incorrect';
+        } else {
+          cell.className = 'cell active';
+        }
+      }
+    }
+  }
+
+  // ---- экран Done ----
+  function showScreenDone() {
+    showScreen(screenDone);
+  }
+
+  // ---- старт теста (полная переинициализация) ----
+  function startTest() {
+    if (selectedNumbers.size === 0) return;
+
+    initValues();
+    saveValuesToStorage();
+
+    showScreen(screenTest);
+    nextQuestion();
+  }
+
+  // ---- инициализация ----
+  function init() {
+    loadSelectedFromStorage();
+    renderCheckboxes();
+    syncCheckboxesFromSelected();
+    btnStart.disabled = selectedNumbers.size < 1;
+
+    // события
+    btnStart.addEventListener('click', startTest);
+
+    answerInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        checkAnswer();
+      }
+    });
+
+    btnHomeFromTest.addEventListener('click', function () {
+      showScreen(screenHome);
+    });
+
+    btnHomeFromDone.addEventListener('click', function () {
+      showScreen(screenHome);
+    });
+
+    questionBlock.addEventListener('click', function () {
+      if (!answerInput.disabled) answerInput.focus();
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+</body>
+</html>

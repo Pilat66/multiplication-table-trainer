@@ -4,7 +4,7 @@ A simple program to test your multiplication table knowledge. Open `mtt.html` in
 
 ## How to use
 
-1. Open `mtt.html` in any modern browser.
+1. Open [mtt.html](https://pilat66.github.io/multiplication-table-trainer/mtt.html) in any modern browser.
 2. On the **Home** screen, check the numbers you want to practice (all numbers from 2 to 9 are selected by default).
 3. Click **«Начать тест»** (Start test).
 4. On the **Test** screen you will see an example like `7 × 8 = ?`. Type your answer in the field and press **Enter**.

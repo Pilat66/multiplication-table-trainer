@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Проверка таблицы умножения</title>
+<title>Multiplication Table Test</title>
 <style>
   *, *::before, *::after {
     box-sizing: border-box;
@@ -278,20 +278,20 @@
 
 <!-- ========== HOME ========== -->
 <div id="screen-home" class="screen active">
-  <h1>🧮 Таблица умножения</h1>
+  <h1>🧮 Multiplication Table</h1>
   <p style="text-align:center;margin-bottom:1.2rem;color:#4a5568;">
-    Выберите числа для проверки:
+    Select numbers to test:
   </p>
   <div class="checkbox-grid" id="checkbox-grid">
     <!-- генерируется JS -->
   </div>
-  <button class="btn" id="btn-start">Начать тест</button>
+  <button class="btn" id="btn-start">Start Test</button>
 </div>
 
 <!-- ========== TEST ========== -->
 <div id="screen-test" class="screen">
   <div class="test-actions">
-    <button class="btn btn-secondary" id="btn-home-from-test">На главную</button>
+    <button class="btn btn-secondary" id="btn-home-from-test">Home</button>
     <div id="progress-counter" class="progress-counter">0/0</div>
   </div>
 
@@ -317,9 +317,9 @@
 
 <!-- ========== DONE ========== -->
 <div id="screen-done" class="screen">
-  <h1>✅ Таблица умножения проверена</h1>
-  <p>Все возможные комбинации успешно решены!</p>
-  <button class="btn" id="btn-home-from-done">На главную</button>
+  <h1>✅ Multiplication Table Completed</h1>
+  <p>All possible combinations solved!</p>
+  <button class="btn" id="btn-home-from-done">Home</button>
 </div>
 
 <script>
@@ -526,6 +526,11 @@
     showQuestion(currentX, currentY);
   }
 
+  // ---- определение типа устройства ----
+  function isDesktop() {
+    return window.matchMedia('(pointer: fine)').matches;
+  }
+
   // ---- счётчик прогресса ----
   function updateProgressCounter() {
     let solved = 0;
@@ -538,7 +543,7 @@
     }
     const el = document.getElementById('progress-counter');
     el.textContent = solved + '/' + total;
-    el.style.fontSize = questionFontSize + 'px';
+    el.style.fontSize = (isDesktop() ? questionFontSize * 0.5 : questionFontSize) + 'px';
   }
 
   // ---- вычисление размера шрифта вопроса (один раз при старте теста) ----
@@ -608,7 +613,7 @@
       consecutiveCorrect = 0;
       waitingForCorrect = true;
       questionBlock.classList.add('incorrect');
-      correctAnswerSpan.textContent = 'Правильный ответ: ' + correct;
+      correctAnswerSpan.textContent = 'Correct answer: ' + correct;
       // поле не блокируем — остаётся активным для повторного ввода
       answerInput.value = '';
       answerInput.focus();
